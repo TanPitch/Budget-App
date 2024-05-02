@@ -119,7 +119,6 @@ document.querySelectorAll(".password-toggle-icon").forEach((el) => {
 
 // wait for reply TODO:
 const fetchGoogleSheet = (SHEET_ID) => {
-  // let SHEET_ID = "1airNMRq7M7NusUwce1iHdOStXRnmRnQ5tDDcX0HiAdE";
   let SHEET_TITLE = "database";
 
   let FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_TITLE}`;
@@ -150,7 +149,12 @@ const fetchGoogleSheet = (SHEET_ID) => {
         data.push(rowData);
       }
 
+      const now = new Date();
       gen_year();
+      sel_year.value = now.getFullYear();
+      gen_month();
+      sel_month.value = monthTxt_dict[now.getMonth()];
+      
       remain();
       chart_year();
       chart_month();
@@ -160,7 +164,7 @@ const fetchGoogleSheet = (SHEET_ID) => {
       console.log("fetch google sheet fail");
     });
 };
-// fetchGoogleSheet();
+
 
 // gen month + year
 const monthTxt_dict = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -181,9 +185,11 @@ const monthNum_dict = {
 function gen_month() {
   const month = [];
   data.forEach((el) => {
+    if (el.date[0] != sel_year.value) return;
     const dateMonth = el.date[1];
     if (!month.includes(dateMonth)) month.push(dateMonth);
   });
+
   sel_month.innerHTML = "";
   month.forEach((el) => {
     sel_month.innerHTML += `<option>${monthTxt_dict[el]}</option>`;
@@ -201,8 +207,6 @@ function gen_year() {
     sel_year.innerHTML += `<option>${el}</option>`;
   });
 
-  // gen month
-  gen_month();
 }
 
 // gen category list
@@ -229,6 +233,7 @@ function gen_category() {
 gen_category();
 
 sel_year.addEventListener("input", () => {
+  gen_month();
   chart_year();
   chart_month();
   chart_category();
@@ -332,6 +337,7 @@ function chart_year() {
         y: {
           display: false,
           stacked: true,
+          max: 100
         },
       },
       barPercentage: 1,
