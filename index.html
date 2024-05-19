@@ -108,6 +108,57 @@
       <div class="chart-container scroll"><canvas id="chart_category" height="250px"></canvas></div>
     </div>
   </div>
+  <div id="page_list" style="display: none;"></div>
+  <div id="nav_foot">
+    <div id="btn_foot_data" class="btn selected">
+      <span class="material-symbols-outlined">monitoring</span>
+    </div>
+    <div id="btn_foot_add" class="btn bg_blue_1">
+      <span class="material-symbols-outlined">add</span>
+    </div>
+    <div id="btn_foot_list" class="btn">
+      <span class="material-symbols-outlined">list</span>
+    </div>
+  </div>
+  <div id="modal_add">
+    <div>
+      <div class="row" style="padding-bottom: 20px;">
+        <h3>Add item</h3>
+        <div class="btn right" onclick="document.querySelector('#modal_add').style.display='none';">&times;</div>
+      </div>
+      <div class="row">
+        <span>Time - Date</span>
+        <input id="input_add_time" type="datetime-local" class="right">
+      </div>
+      <div class="row">
+        <span>Type</span>
+        <select id="sel_add_type" class="right">
+          <option>income</option>
+          <option>expense</option>
+        </select>
+      </div>
+      <div class="row">
+        <span>Amount</span>
+        <div class="right group">
+          <select id="sel_add_currency">
+            <option value="ntd">NT$</option>
+            <option value="thb" selected>฿</option>
+          </select>
+          <input id="input_add_amount" type="number" pattern="\d*" style="width: 100px; text-align:right;" placeholder="0">
+        </div>
+      </div>
+      <div class="row">
+        <span>Category</span>
+        <select id="sel_add_category" class="right"></select>
+      </div>
+      <div class="row" style="padding-bottom: 20px;">
+        <span>Note</span>
+        <input id="input_add_note" type="text" class="right" placeholder="...">
+      </div>
+      <div id="btn_add_add" class="btn bg_blue_1" style="display: flex; justify-content: center;"><span
+          class="material-symbols-outlined">add</span></div>
+    </div>
+  </div>
   <div id="page_loading">
     <div>
       <div class="rotate">

@@ -20,7 +20,7 @@
 
 body {
   margin: 0;
-  padding: 20px;
+  /* padding: 20px; */
   color: var(--b5);
   background-color: var(--b0);
   font-family: "Bai Jamjuree", sans-serif;
@@ -61,6 +61,18 @@ select {
   font-weight: 300;
   font-style: normal;
   font-size: 14px;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 #page_loading {
@@ -371,6 +383,52 @@ select {
 
 /* #endregion */
 
+#page_data {
+  padding: 20px;
+  margin-bottom: 60px;
+}
+
+#modal_add {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#modal_add>div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 10px 20px 20px;
+  background-color: var(--b1);
+}
+
+#modal_add>div input {
+  outline: none;
+  border: none;
+  background-color: var(--b1);
+  color: var(--b5);
+}
+
+#nav_foot {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100dvw;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  background-color: var(--b1);
+}
+
+/* #endregion */
+
 /* #region : obj template */
 
 .chart-container {
@@ -407,6 +465,16 @@ select {
 
 .btn:hover {
   box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.4);
+}
+
+.btn.selected {
+  background-color: var(--b2);
+}
+
+.group {
+  padding: 6px;
+  border: 1px solid var(--b2);
+  border-radius: 6px;
 }
 
 /* #endregion */
@@ -651,6 +719,11 @@ select {
 .bg_red_0 {
   background-color: var(--red_0);
 }
+
+.bg_red_1 {
+  background-color: var(--red_1);
+}
+
 
 .bg_green_0 {
   background-color: var(--green_0);

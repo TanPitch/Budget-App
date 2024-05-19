@@ -1,27 +1,14 @@
-const queryWords = {
-  expense: [
-    { find: "d", key: "อาหาร" },
-    { find: "t", key: "เดินทาง" },
-    { find: "b", key: "หนังสือ" },
-    { find: "h", key: "ช็อปปิ้ง" },
-    { find: "c", key: "cloud" },
-    { find: "l", key: "ที่พัก" },
-    { find: "w", key: "ส่งส่วย" },
-    { find: "q", key: "ที่บ้าน" },
-    { find: "f", key: "กองทุน" },
-    { find: "s", key: "หุ้น" },
-    { find: "g", key: "ทอง" },
-    { find: "o", key: "อื่นๆ" },
-  ],
-  income: [
-    { find: "im", key: "เงินเดือน" },
-    { find: "ib", key: "โบนัส" },
-    { find: "ir", key: "ของขวัญ" },
-    { find: "if", key: "กองทุน" },
-    { find: "is", key: "หุ้น" },
-    { find: "ig", key: "ทอง" },
-  ],
-};
+var words_expense = [];
+var words_income = [];
+
+const modal_add = document.querySelector("#modal_add");
+const input_add_time = document.querySelector("#input_add_time");
+const sel_add_type = document.querySelector("#sel_add_type");
+const sel_add_currency = document.querySelector("#sel_add_currency");
+const input_add_amount = document.querySelector("#input_add_amount");
+const sel_add_category = document.querySelector("#sel_add_category");
+const input_add_note = document.querySelector("#input_add_note");
+const btn_add_add = document.querySelector("#btn_add_add");
 
 const sel_year = document.querySelector("#sel_year");
 const sel_month = document.querySelector("#sel_month");
@@ -31,6 +18,36 @@ const sel_cat = document.querySelector("#sel_cat");
 const label_year = document.querySelector("#label_year");
 
 const data = [];
+
+// #region : footer
+
+const btn_foot_data = document.querySelector("#btn_foot_data");
+const btn_foot_add = document.querySelector("#btn_foot_add");
+const btn_foot_list = document.querySelector("#btn_foot_list");
+
+btn_foot_add.addEventListener("click", () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+  input_add_time.value = formattedDateTime;
+
+  sel_add_type.value = "income";
+  sel_add_currency.value = "thb";
+  input_add_amount.value = 0;
+  input_add_note.value = "";
+
+  sel_add_type.className = "right bg_green_0";
+
+  addModal_gen_category();
+  modal_add.style.display = "flex";
+});
+
+// #endregion
 
 // #region : login page
 
@@ -55,8 +72,8 @@ async function hashPassword(password) {
   return btoa(hashedPassword);
 }
 
-// auto login
-if (localStorage.getItem("username") != "") login();
+// auto login DEBUG:
+// if (localStorage.getItem("username") != "") login();
 
 btn_login.addEventListener("click", async () => {
   login();
@@ -80,7 +97,6 @@ async function login() {
     localStorage.setItem("password", password);
   }
 
-  console.log(data);
   page_loading.style.display = "flex";
 
   fetch(url, {
@@ -117,6 +133,8 @@ document.querySelectorAll(".password-toggle-icon").forEach((el) => {
 
 // #endregion
 
+// #region : data page
+
 // wait for reply TODO:
 const fetchGoogleSheet = (SHEET_ID) => {
   let SHEET_TITLE = "database";
@@ -149,22 +167,57 @@ const fetchGoogleSheet = (SHEET_ID) => {
         data.push(rowData);
       }
 
-      const now = new Date();
-      gen_year();
-      sel_year.value = now.getFullYear();
-      gen_month();
-      sel_month.value = monthTxt_dict[now.getMonth()];
-      
-      remain();
-      chart_year();
-      chart_month();
-      chart_category();
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=category`)
+        .then((res) => res.text())
+        .then((rep) => {
+          let rawdata = JSON.parse(rep.substr(47).slice(0, -2));
+
+          words_expense = [];
+          words_income = [];
+
+          rawdata.table.rows.slice(2).forEach((el) => {
+            for (let i = 0; i < el.c.length; i++) {
+              if (el.c[0] != null && el.c[0].v != null && (i == 0 || i == 1)) {
+                if (!words_expense.some((item) => item.find === el.c[0].v && item.key === el.c[1].v)) {
+                  words_expense.push({
+                    find: el.c[0].v,
+                    key: el.c[1].v,
+                  });
+                }
+              }
+              if (el.c[2] != null && el.c[2].v != null && (i == 2 || i == 3)) {
+                if (!words_income.some((item) => item.find === el.c[2].v && item.key === el.c[3].v)) {
+                  words_income.push({
+                    find: el.c[2].v,
+                    key: el.c[3].v,
+                  });
+                }
+              }
+            }
+          });
+
+          const now = new Date();
+          gen_year();
+          sel_year.value = now.getFullYear();
+          gen_month();
+          sel_month.value = monthTxt_dict[now.getMonth()];
+
+          remain();
+          chart_year();
+          chart_month();
+          chart_category();
+        });
     })
     .catch((error) => {
       console.log("fetch google sheet fail");
     });
 };
 
+// DEBUG:
+passwordAlert.style.display = "none";
+fetchGoogleSheet("1airNMRq7M7NusUwce1iHdOStXRnmRnQ5tDDcX0HiAdE");
+page_login.style.display = "none";
+page_data.style.display = "block";
 
 // gen month + year
 const monthTxt_dict = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -206,7 +259,6 @@ function gen_year() {
   year.forEach((el) => {
     sel_year.innerHTML += `<option>${el}</option>`;
   });
-
 }
 
 // gen category list
@@ -215,17 +267,17 @@ function gen_category() {
   switch (sel_type.value) {
     case "income":
       sel_cat.innerHTML += `<option>all</option>`;
-      [...queryWords.income].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
+      [...words_income].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
       break;
     case "expense":
       sel_cat.innerHTML += `<option>all</option>`;
-      [...queryWords.expense].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
+      [...words_expense].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
       break;
     case "both":
       sel_cat.innerHTML += `<option>all</option><optgroup label="income">`;
-      [...queryWords.income].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
+      [...words_income].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
       sel_cat.innerHTML += `</optgroup><optgroup label="expense">`;
-      [...queryWords.expense].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
+      [...words_expense].forEach((el) => (sel_cat.innerHTML += `<option>${el.key}</option>`));
       sel_cat.innerHTML += `</optgroup>`;
       break;
   }
@@ -337,7 +389,7 @@ function chart_year() {
         y: {
           display: false,
           stacked: true,
-          max: 100
+          max: 100,
         },
       },
       barPercentage: 1,
@@ -610,3 +662,41 @@ const chartScroll = document.querySelector(".chart-scroll");
 chartScroll.addEventListener("wheel", (e) => {
   chartScroll.scrollLeft = chartScroll.scrollLeft + e.deltaY * 0.8;
 });
+
+// #endregion
+
+// #region : add modal
+
+function addModal_gen_category() {
+  if (sel_add_type.value == "income") {
+    sel_add_category.innerHTML = "";
+    words_income
+      .map((el) => el.key)
+      .forEach((el) => {
+        sel_add_category.innerHTML += `<option>${el}</option>`;
+      });
+  } else {
+    sel_add_category.innerHTML = "";
+    words_expense
+      .map((el) => el.key)
+      .forEach((el) => {
+        sel_add_category.innerHTML += `<option>${el}</option>`;
+      });
+  }
+}
+
+sel_add_type.addEventListener("change", () => {
+  addModal_gen_category();
+  sel_add_type.className = sel_add_type.value == "income" ? "right bg_green_0" : "right bg_red_1";
+});
+
+btn_add_add.addEventListener("click", () => {
+  if (input_add_amount.value == 0) {
+    alert("Amount cannot be 0");
+    return;
+  }
+  
+  console.log(input_add_note.value);
+});
+
+// #endregion
