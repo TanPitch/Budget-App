@@ -22,6 +22,7 @@
     rel="stylesheet">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -72,6 +73,9 @@
     <div class="row">
       <span>remain</span>
       <h1 id="balance"></h1>
+      <div class="btn right" id="btn_data_logout">
+        <span class="material-symbols-outlined">logout</span>
+      </div>
     </div>
     <div class="chart-container"><canvas id="chart_year" height="100px"></canvas></div>
 
@@ -108,7 +112,9 @@
       <div class="chart-container scroll"><canvas id="chart_category" height="250px"></canvas></div>
     </div>
   </div>
-  <div id="page_list" style="display: none;"></div>
+  <div id="page_list" style="display: none;">
+    <div id="listArea"></div>
+  </div>
   <div id="nav_foot">
     <div id="btn_foot_data" class="btn selected">
       <span class="material-symbols-outlined">monitoring</span>
@@ -196,6 +202,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
   <script src="mini.js"></script>
 </body>
 
