@@ -1,5 +1,10 @@
 var words_expense = [];
 var words_income = [];
+var ggsheetId;
+
+const page_loading = document.querySelector("#page_loading");
+const page_data = document.querySelector("#page_data");
+const page_list = document.querySelector("#page_list");
 
 const modal_add = document.querySelector("#modal_add");
 const input_add_time = document.querySelector("#input_add_time");
@@ -17,13 +22,32 @@ const sel_cat = document.querySelector("#sel_cat");
 
 const label_year = document.querySelector("#label_year");
 
-const data = [];
+var data = [];
 
 // #region : footer
 
+const nav_foot = document.querySelector("#nav_foot");
 const btn_foot_data = document.querySelector("#btn_foot_data");
 const btn_foot_add = document.querySelector("#btn_foot_add");
 const btn_foot_list = document.querySelector("#btn_foot_list");
+
+btn_foot_data.addEventListener("click", () => {
+  btn_foot_data.className = "btn selected";
+  btn_foot_list.className = "btn";
+
+  page_data.style.display = "block";
+  page_list.style.display = "none";
+})
+
+btn_foot_list.addEventListener("click", () => {
+  btn_foot_data.className = "btn";
+  btn_foot_list.className = "btn selected";
+
+  gen_table();
+
+  page_data.style.display = "none";
+  page_list.style.display = "block";
+})
 
 btn_foot_add.addEventListener("click", () => {
   const now = new Date();
@@ -38,7 +62,7 @@ btn_foot_add.addEventListener("click", () => {
 
   sel_add_type.value = "income";
   sel_add_currency.value = "thb";
-  input_add_amount.value = 0;
+  input_add_amount.value = "";
   input_add_note.value = "";
 
   sel_add_type.className = "right bg_green_0";
@@ -51,9 +75,7 @@ btn_foot_add.addEventListener("click", () => {
 
 // #region : login page
 
-const page_loading = document.querySelector("#page_loading");
 const page_login = document.querySelector("#page_login");
-const page_data = document.querySelector("#page_data");
 const input_username = document.querySelector("#username");
 const input_password = document.querySelector("#password");
 const rememberMe = document.querySelector("#rememberMe");
@@ -72,8 +94,12 @@ async function hashPassword(password) {
   return btoa(hashedPassword);
 }
 
-// auto login DEBUG:
-// if (localStorage.getItem("username") != "") login();
+// auto login
+if (localStorage.getItem("username") != "") {
+  input_username.value = localStorage.getItem("username");
+  input_password.value = localStorage.getItem("password");
+  login();
+}
 
 btn_login.addEventListener("click", async () => {
   login();
@@ -115,10 +141,12 @@ async function login() {
       if (output.status == "failed") {
         passwordAlert.style.display = "flex";
       } else if (output.status == "success") {
+        ggsheetId = output.output;
         passwordAlert.style.display = "none";
         fetchGoogleSheet(output.output);
         page_login.style.display = "none";
         page_data.style.display = "block";
+        nav_foot.style.display = "flex";
       }
     });
 }
@@ -134,6 +162,25 @@ document.querySelectorAll(".password-toggle-icon").forEach((el) => {
 // #endregion
 
 // #region : data page
+
+const btn_data_logout = document.querySelector("#btn_data_logout");
+btn_data_logout.addEventListener("click", () => {
+  // clear data
+  words_expense = [];
+  words_income = [];
+  data = [];
+  ggsheetId = "";
+
+  page_login.style.display = "flex";
+  page_data.style.display = "none";
+  nav_foot.style.display = "none";
+
+  // fill login username
+  if (localStorage.getItem("username") != "") {
+    input_username.value = localStorage.getItem("username");
+    input_password.value = "";
+  }
+})
 
 // wait for reply TODO:
 const fetchGoogleSheet = (SHEET_ID) => {
@@ -212,12 +259,6 @@ const fetchGoogleSheet = (SHEET_ID) => {
       console.log("fetch google sheet fail");
     });
 };
-
-// DEBUG:
-passwordAlert.style.display = "none";
-fetchGoogleSheet("1airNMRq7M7NusUwce1iHdOStXRnmRnQ5tDDcX0HiAdE");
-page_login.style.display = "none";
-page_data.style.display = "block";
 
 // gen month + year
 const monthTxt_dict = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -691,12 +732,107 @@ sel_add_type.addEventListener("change", () => {
 });
 
 btn_add_add.addEventListener("click", () => {
-  if (input_add_amount.value == 0) {
-    alert("Amount cannot be 0");
+  if (input_add_amount.value == 0 || input_add_amount.value == "") {
+    alert("insert amount");
     return;
   }
-  
-  console.log(input_add_note.value);
+
+  function convertDate(inputDate) {
+    const [year, month, day] = inputDate.split('-');
+    return `${parseInt(month)}/${parseInt(day)}/${year}`;
+  }
+
+  const msgdata = {
+    sheet: ggsheetId,
+    command: "addLast",
+    time: input_add_time.value.split("T")[1],
+    date: convertDate(input_add_time.value.split("T")[0]),
+    type: sel_add_type.value,
+    category: sel_add_category.value,
+    value: input_add_amount.value,
+    note: input_add_note.value
+  };
+
+  page_loading.style.display = "flex";
+
+  const url =
+  "https://script.google.com/macros/s/AKfycbyQEMsWAb-b80A4jiYLsCFB8iJDJYMSwOxQZW3A_oi7Fs7RR2GgT57gi--GfqIA9SMv/exec"
+  fetch(url, {
+    redirect: "follow",
+    method: "POST",
+    body: JSON.stringify(msgdata),
+    headers: {
+      "Content-Type": "text/plain; charset=UTF-8",
+    },
+  })
+    .then((response) => response.text())
+    .then((json) => {
+      const output = JSON.parse(json);
+      page_loading.style.display = "none";
+      if (output.status == "ok") {
+        modal_add.style.display = "none";
+        fetchGoogleSheet(ggsheetId);
+      } else {
+        alert("error");
+      }
+    });
 });
+
+// #endregion
+
+// #region page list
+
+function gen_table() {
+
+  const padZero = (num) => (num < 10 ? `0${num}` : num);
+
+  function formatTime(dateString) {
+    if (dateString == "") return dateString;
+
+    const hours = dateString.split(",")[3];
+    const minutes = dateString.split(",")[4];
+    return `${padZero(hours)}:${padZero(minutes)}`;
+  }
+
+  const newData = [];
+  data.forEach(el => {
+    const dateText = `${padZero(el.date[2])}/${padZero(el.date[1])}/${el.date[0]}`;
+    const timeText = formatTime(el.time);
+    const temp_data = [
+      dateText,
+      timeText,
+      el.type,
+      el.category,
+      el.value,
+      el.note
+    ];
+    newData.push(temp_data);
+  })
+
+  new gridjs.Grid({
+    columns: ["Date", "Time", "Type", "Category", "Amount", "Note"],
+    sort: true,
+    search: true,
+    pagination: true,
+    fixedHeader: true,
+    data: newData,
+    style: {
+      table: {
+        'border-collapse': 'collapse',
+        'width': '100%'
+      },
+      th: {
+        'background': '#f8f8f8',
+        'border': '1px solid #ddd',
+        'padding': '8px'
+      },
+      td: {
+        'border': '1px solid #ddd',
+        'padding': '8px',
+        'text-align': 'center'
+      }
+    }
+  }).render(document.querySelector("#listArea"));
+}
 
 // #endregion
